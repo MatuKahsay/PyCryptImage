@@ -66,7 +66,7 @@ def decrypt_image():
         Thread(target=perform_decryption, args=(file_path, key)).start()
 
 root = Tk()
-root.geometry("300x200")
+root.geometry("300x250")
 root.title("Image Encryptor/Decryptor")
 
 Label(root, text="Key (16 characters):").place(x=20, y=20)
@@ -75,5 +75,8 @@ entry_key.place(x=20, y=50)
 
 Button(root, text="Encrypt Image", command=encrypt_image).place(x=20, y=90)
 Button(root, text="Decrypt Image", command=decrypt_image).place(x=150, y=90)
+
+progress_bar = ttk.Progressbar(root, orient=HORIZONTAL, length=200, mode='indeterminate')
+progress_bar.place(x=50, y=130)
 
 root.mainloop()

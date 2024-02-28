@@ -38,7 +38,12 @@ def perform_decryption(file_path, key):
         
         cipher = AES.new(key, AES.MODE_CBC, iv=iv)
         decrypted_image = unpad(cipher.decrypt(encrypted_image), AES.block_size)
-        decrypted_file_path = file_path.rstrip('.enc')
+        
+        # Modify file_path for decrypted files
+        file_dir, file_name = os.path.split(file_path)
+        name, _ = os.path.splitext(file_name)
+        name = name.replace("_encrypted", "")  # Remove '_encrypted' part
+        decrypted_file_path = os.path.join(file_dir, f"{name}_decrypted.jpg")  # Assuming original was a JPG
         
         with open(decrypted_file_path, 'wb') as df:
             df.write(decrypted_image)

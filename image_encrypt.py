@@ -103,10 +103,43 @@ entry_key.place(x=20, y=50)
 Button(root, text="Generate Key", command=generate_key).place(x=20, y=80)
 Button(root, text="Load Key", command=load_key).place(x=150, y=80)
 
-Button(root, text="Encrypt Images", command=encrypt_images).place(x=20, y=120)
-Button(root, text="Decrypt Images", command=decrypt_images).place(x=150, y=120)
+Button(root, text="Encrypt Images (Ctrl+E)", command=encrypt_images).place(x=20, y=120)
+Button(root, text="Decrypt Images (Ctrl+D)", command=decrypt_images).place(x=150, y=120)
 
 progress_bar = ttk.Progressbar(root, orient=HORIZONTAL, length=200, mode='indeterminate')
 progress_bar.place(x=100, y=160)
+
+# Tooltip for Generate Key button
+ToolTip(Button(root, text="Generate Key", command=generate_key), "Generate a random encryption key.")
+
+# Tooltip for Load Key button
+ToolTip(Button(root, text="Load Key", command=load_key), "Load an encryption key from file.")
+
+# Tooltip for Encrypt Images button
+ToolTip(Button(root, text="Encrypt Images (Ctrl+E)", command=encrypt_images), "Encrypt selected images. Shortcut: Ctrl+E")
+
+# Tooltip for Decrypt Images button
+ToolTip(Button(root, text="Decrypt Images (Ctrl+D)", command=decrypt_images), "Decrypt selected images. Shortcut: Ctrl+D")
+
+class ToolTip:
+    def __init__(self, widget, text):
+        self.widget = widget
+        self.text = text
+        self.widget.bind("<Enter>", self.enter)
+        self.widget.bind("<Leave>", self.leave)
+
+    def enter(self, event=None):
+        self.tooltip = Toplevel(self.widget)
+        x, y, _, _ = self.widget.bbox("insert")
+        x += self.widget.winfo_rootx() + 25
+        y += self.widget.winfo_rooty() + 25
+        self.tooltip.wm_overrideredirect(True)
+        self.tooltip.wm_geometry(f"+{x}+{y}")
+        label = Label(self.tooltip, text=self.text, background="#ffffe0", relief="solid", borderwidth=1)
+        label.pack(ipadx=1)
+
+    def leave(self, event=None):
+        if self.tooltip:
+            self.tooltip.destroy()
 
 root.mainloop()

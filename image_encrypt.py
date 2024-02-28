@@ -4,6 +4,27 @@ import os
 from Crypto.Cipher import AES
 from Crypto.Util.Padding import pad, unpad
 from Crypto.Random import get_random_bytes
+from threading import Thread
+
+def perform_encryption(file_path, key):
+    try:
+        with open(file_path, 'rb') as f:
+            original_image = f.read()
+        
+        cipher = AES.new(key, AES.MODE_CBC)
+        iv = cipher.iv
+        encrypted_image = cipher.encrypt(pad(original_image, AES.block_size))
+        encrypted_file_path = f"{file_path}.enc"
+        
+        with open(encrypted_file_path, 'wb') as ef:
+            ef.write(iv + encrypted_image)
+        
+        messagebox.showinfo("Success", f"Image encrypted successfully.\nSaved as: {encrypted_file_path}")
+    except Exception as e:
+        messagebox.showerror("Error", f"Encryption failed: {str(e)}")
+    finally:
+        progress_bar.stop()
+
 
 
 def encrypt_image():

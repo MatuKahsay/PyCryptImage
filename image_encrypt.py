@@ -6,6 +6,27 @@ from Crypto.Util.Padding import pad, unpad
 from Crypto.Random import get_random_bytes
 from threading import Thread
 
+class ToolTip:
+    def __init__(self, widget, text):
+        self.widget = widget
+        self.text = text
+        self.widget.bind("<Enter>", self.enter)
+        self.widget.bind("<Leave>", self.leave)
+
+    def enter(self, event=None):
+        self.tooltip = Toplevel(self.widget)
+        x, y, _, _ = self.widget.bbox("insert")
+        x += self.widget.winfo_rootx() + 25
+        y += self.widget.winfo_rooty() + 25
+        self.tooltip.wm_overrideredirect(True)
+        self.tooltip.wm_geometry(f"+{x}+{y}")
+        label = Label(self.tooltip, text=self.text, background="#ffffe0", relief="solid", borderwidth=1)
+        label.pack(ipadx=1)
+
+    def leave(self, event=None):
+        if self.tooltip:
+            self.tooltip.destroy()
+
 def generate_key():
     key = get_random_bytes(16)  # Generate a 16-byte key
     key_file_path = filedialog.asksaveasfilename(defaultextension=".key", filetypes=[("Key files", "*.key")])
@@ -120,26 +141,5 @@ ToolTip(Button(root, text="Encrypt Images (Ctrl+E)", command=encrypt_images), "E
 
 # Tooltip for Decrypt Images button
 ToolTip(Button(root, text="Decrypt Images (Ctrl+D)", command=decrypt_images), "Decrypt selected images. Shortcut: Ctrl+D")
-
-class ToolTip:
-    def __init__(self, widget, text):
-        self.widget = widget
-        self.text = text
-        self.widget.bind("<Enter>", self.enter)
-        self.widget.bind("<Leave>", self.leave)
-
-    def enter(self, event=None):
-        self.tooltip = Toplevel(self.widget)
-        x, y, _, _ = self.widget.bbox("insert")
-        x += self.widget.winfo_rootx() + 25
-        y += self.widget.winfo_rooty() + 25
-        self.tooltip.wm_overrideredirect(True)
-        self.tooltip.wm_geometry(f"+{x}+{y}")
-        label = Label(self.tooltip, text=self.text, background="#ffffe0", relief="solid", borderwidth=1)
-        label.pack(ipadx=1)
-
-    def leave(self, event=None):
-        if self.tooltip:
-            self.tooltip.destroy()
 
 root.mainloop()

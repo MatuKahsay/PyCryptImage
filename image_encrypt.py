@@ -32,7 +32,6 @@ def perform_encryption(file_path, key):
         iv = cipher.iv
         encrypted_image = cipher.encrypt(pad(original_image, AES.block_size))
         
-        # Modify file_path to include '_encrypted' before the extension
         file_dir, file_name = os.path.split(file_path)
         name, ext = os.path.splitext(file_name)
         encrypted_file_path = os.path.join(file_dir, f"{name}_encrypted{ext}")
@@ -46,7 +45,6 @@ def perform_encryption(file_path, key):
     finally:
         progress_bar.stop()
 
-
 def perform_decryption(file_path, key):
     try:
         with open(file_path, 'rb') as ef:
@@ -56,11 +54,10 @@ def perform_decryption(file_path, key):
         cipher = AES.new(key, AES.MODE_CBC, iv=iv)
         decrypted_image = unpad(cipher.decrypt(encrypted_image), AES.block_size)
         
-        # Modify file_path for decrypted files
         file_dir, file_name = os.path.split(file_path)
         name, _ = os.path.splitext(file_name)
-        name = name.replace("_encrypted", "")  # Remove '_encrypted' part
-        decrypted_file_path = os.path.join(file_dir, f"{name}_decrypted.jpg")  # Assuming original was a JPG
+        name = name.replace("_encrypted", "")
+        decrypted_file_path = os.path.join(file_dir, f"{name}_decrypted.jpg")
         
         with open(decrypted_file_path, 'wb') as df:
             df.write(decrypted_image)
@@ -74,35 +71,40 @@ def perform_decryption(file_path, key):
 def encrypt_image():
     file_path = filedialog.askopenfilename(filetypes=[('jpg file', '*.jpg')])
     if file_path:
-        key = entry_key.get().encode('utf-8')
-        if len(key) != 16:  # Ensure AES key is 16 bytes long
-            messagebox.showerror("Error", "Key must be 16 characters long.")
+        key_hex = entry_key.get()
+        if len(key_hex) != 32:  # 16 bytes == 32 hex characters
+            messagebox.showerror("Error", "Key must be 32 hex characters long (16 bytes).")
             return
+        key = bytes.fromhex(key_hex)
         progress_bar.start(10)
         Thread(target=perform_encryption, args=(file_path, key)).start()
 
 def decrypt_image():
     file_path = filedialog.askopenfilename(filetypes=[('enc file', '*.jpg.enc')])
     if file_path:
-        key = entry_key.get().encode('utf-8')
-        if len(key) != 16:
-            messagebox.showerror("Error", "Key must be 16 characters long.")
+        key_hex = entry_key.get()
+        if len(key_hex) != 32:
+            messagebox.showerror("Error", "Key must be 32 hex characters long (16 bytes).")
             return
+        key = bytes.fromhex(key_hex)
         progress_bar.start(10)
         Thread(target=perform_decryption, args=(file_path, key)).start()
 
 root = Tk()
-root.geometry("300x250")
+root.geometry("400x300")
 root.title("Image Encryptor/Decryptor")
 
-Label(root, text="Key (16 characters):").place(x=20, y=20)
-entry_key = Entry(root, width=24)
+Label(root, text="Key (32 hex characters):").place(x=20, y=20)
+entry_key = Entry(root, width=48)
 entry_key.place(x=20, y=50)
 
-Button(root, text="Encrypt Image", command=encrypt_image).place(x=20, y=90)
-Button(root, text="Decrypt Image", command=decrypt_image).place(x=150, y=90)
+Button(root, text="Generate Key", command=generate_key).place(x=20, y=80)
+Button(root, text="Load Key", command=load_key).place(x=150, y=80)
+
+Button(root, text="Encrypt Image", command=encrypt_image).place(x=20, y=120)
+Button(root, text="Decrypt Image", command=decrypt_image).place(x=150, y=120)
 
 progress_bar = ttk.Progressbar(root, orient=HORIZONTAL, length=200, mode='indeterminate')
-progress_bar.place(x=50, y=130)
+progress_bar.place(x=100, y=160)
 
 root.mainloop()

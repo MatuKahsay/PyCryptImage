@@ -45,7 +45,6 @@ def perform_decryption(file_path, key):
     finally:
         progress_bar.stop()
 
-
 def encrypt_image():
     file_path = filedialog.askopenfilename(filetypes=[('jpg file', '*.jpg')])
     if file_path:
@@ -53,22 +52,8 @@ def encrypt_image():
         if len(key) != 16:  # Ensure AES key is 16 bytes long
             messagebox.showerror("Error", "Key must be 16 characters long.")
             return
-        
-        try:
-            with open(file_path, 'rb') as f:
-                original_image = f.read()
-            
-            cipher = AES.new(key, AES.MODE_CBC)
-            iv = cipher.iv
-            encrypted_image = cipher.encrypt(pad(original_image, AES.block_size))
-            encrypted_file_path = f"{file_path}.enc"
-            
-            with open(encrypted_file_path, 'wb') as ef:
-                ef.write(iv + encrypted_image)
-            
-            messagebox.showinfo("Success", f"Image encrypted successfully.\nSaved as: {encrypted_file_path}")
-        except Exception as e:
-            messagebox.showerror("Error", f"Encryption failed: {str(e)}")
+        progress_bar.start(10)
+        Thread(target=perform_encryption, args=(file_path, key)).start()
 
 def decrypt_image():
     file_path = filedialog.askopenfilename(filetypes=[('enc file', '*.jpg.enc')])

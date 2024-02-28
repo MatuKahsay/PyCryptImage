@@ -30,6 +30,30 @@ def encrypt_image():
         except Exception as e:
             messagebox.showerror("Error", f"Encryption failed: {str(e)}")
 
+def decrypt_image():
+    file_path = filedialog.askopenfilename(filetypes=[('enc file', '*.jpg.enc')])
+    if file_path:
+        key = entry_key.get().encode('utf-8')
+        if len(key) != 16:
+            messagebox.showerror("Error", "Key must be 16 characters long.")
+            return
+        
+        try:
+            with open(file_path, 'rb') as ef:
+                iv = ef.read(16)
+                encrypted_image = ef.read()
+            
+            cipher = AES.new(key, AES.MODE_CBC, iv=iv)
+            decrypted_image = unpad(cipher.decrypt(encrypted_image), AES.block_size)
+            decrypted_file_path = file_path.rstrip('.enc')
+            
+            with open(decrypted_file_path, 'wb') as df:
+                df.write(decrypted_image)
+            
+            messagebox.showinfo("Success", f"Image decrypted successfully.\nSaved as: {decrypted_file_path}")
+        except Exception as e:
+            messagebox.showerror("Error", f"Decryption failed: {str(e)}")
+
     
 b1 = Button(root,text = "encrypt", command = encrypt_image)
 b1.place(x = 70, y = 10)

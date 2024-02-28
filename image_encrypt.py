@@ -26,6 +26,25 @@ def perform_encryption(file_path, key):
         progress_bar.stop()
 
 
+def perform_decryption(file_path, key):
+    try:
+        with open(file_path, 'rb') as ef:
+            iv = ef.read(16)
+            encrypted_image = ef.read()
+        
+        cipher = AES.new(key, AES.MODE_CBC, iv=iv)
+        decrypted_image = unpad(cipher.decrypt(encrypted_image), AES.block_size)
+        decrypted_file_path = file_path.rstrip('.enc')
+        
+        with open(decrypted_file_path, 'wb') as df:
+            df.write(decrypted_image)
+        
+        messagebox.showinfo("Success", f"Image decrypted successfully.\nSaved as: {decrypted_file_path}")
+    except Exception as e:
+        messagebox.showerror("Error", f"Decryption failed: {str(e)}")
+    finally:
+        progress_bar.stop()
+
 
 def encrypt_image():
     file_path = filedialog.askopenfilename(filetypes=[('jpg file', '*.jpg')])

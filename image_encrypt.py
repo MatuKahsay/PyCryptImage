@@ -14,6 +14,15 @@ def generate_key():
             key_file.write(key)
         messagebox.showinfo("Key Generated", f"Key saved successfully at: {key_file_path}")
 
+def load_key():
+    key_file_path = filedialog.askopenfilename(filetypes=[('Key files', '*.key')])
+    if key_file_path:
+        with open(key_file_path, 'rb') as key_file:
+            key = key_file.read()
+        entry_key.delete(0, END)
+        entry_key.insert(0, key.hex())  # Display key as hex string in entry widget
+        messagebox.showinfo("Key Loaded", "Encryption key loaded successfully.")
+
 def perform_encryption(file_path, key):
     try:
         with open(file_path, 'rb') as f:

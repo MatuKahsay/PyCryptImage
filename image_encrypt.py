@@ -62,11 +62,7 @@ Label(root, text="Key (16 characters):").place(x=20, y=20)
 entry_key = Entry(root, width=24)
 entry_key.place(x=20, y=50)
 
-
-b1 = Button(root,text = "encrypt", command = encrypt_image)
-b1.place(x = 70, y = 10)
-
-entry1 = Text(root, height = 1, width = 10)
-entry1.place(x = 50, y = 50)
+Button(root, text="Encrypt Image", command=encrypt_image).place(x=20, y=90)
+Button(root, text="Decrypt Image", command=decrypt_image).place(x=150, y=90)
 
 root.mainloop()

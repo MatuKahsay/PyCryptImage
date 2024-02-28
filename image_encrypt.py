@@ -58,6 +58,10 @@ root = Tk()
 root.geometry("300x200")
 root.title("Image Encryptor/Decryptor")
 
+Label(root, text="Key (16 characters):").place(x=20, y=20)
+entry_key = Entry(root, width=24)
+entry_key.place(x=20, y=50)
+
 
 b1 = Button(root,text = "encrypt", command = encrypt_image)
 b1.place(x = 70, y = 10)

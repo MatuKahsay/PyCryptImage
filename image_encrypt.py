@@ -54,7 +54,11 @@ def decrypt_image():
         except Exception as e:
             messagebox.showerror("Error", f"Decryption failed: {str(e)}")
 
-    
+root = Tk()
+root.geometry("300x200")
+root.title("Image Encryptor/Decryptor")
+
+
 b1 = Button(root,text = "encrypt", command = encrypt_image)
 b1.place(x = 70, y = 10)
 

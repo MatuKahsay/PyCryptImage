@@ -62,22 +62,8 @@ def decrypt_image():
         if len(key) != 16:
             messagebox.showerror("Error", "Key must be 16 characters long.")
             return
-        
-        try:
-            with open(file_path, 'rb') as ef:
-                iv = ef.read(16)
-                encrypted_image = ef.read()
-            
-            cipher = AES.new(key, AES.MODE_CBC, iv=iv)
-            decrypted_image = unpad(cipher.decrypt(encrypted_image), AES.block_size)
-            decrypted_file_path = file_path.rstrip('.enc')
-            
-            with open(decrypted_file_path, 'wb') as df:
-                df.write(decrypted_image)
-            
-            messagebox.showinfo("Success", f"Image decrypted successfully.\nSaved as: {decrypted_file_path}")
-        except Exception as e:
-            messagebox.showerror("Error", f"Decryption failed: {str(e)}")
+        progress_bar.start(10)
+        Thread(target=perform_decryption, args=(file_path, key)).start()
 
 root = Tk()
 root.geometry("300x200")

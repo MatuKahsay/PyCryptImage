@@ -23,6 +23,20 @@ def load_key():
         entry_key.insert(0, key.hex())  # Display key as hex string in entry widget
         messagebox.showinfo("Key Loaded", "Encryption key loaded successfully.")
 
+def batch_process(files, operation):
+    key_hex = entry_key.get()
+    if len(key_hex) != 32:  # 16 bytes == 32 hex characters
+        messagebox.showerror("Error", "Key must be 32 hex characters long (16 bytes).")
+        return
+    key = bytes.fromhex(key_hex)
+    progress_bar.start(10)
+
+    for file_path in files:
+        if operation == "encrypt":
+            Thread(target=perform_encryption, args=(file_path, key)).start()
+        elif operation == "decrypt":
+            Thread(target=perform_decryption, args=(file_path, key)).start()
+
 def perform_encryption(file_path, key):
     try:
         with open(file_path, 'rb') as f:
@@ -68,27 +82,15 @@ def perform_decryption(file_path, key):
     finally:
         progress_bar.stop()
 
-def encrypt_image():
-    file_path = filedialog.askopenfilename(filetypes=[('jpg file', '*.jpg')])
-    if file_path:
-        key_hex = entry_key.get()
-        if len(key_hex) != 32:  # 16 bytes == 32 hex characters
-            messagebox.showerror("Error", "Key must be 32 hex characters long (16 bytes).")
-            return
-        key = bytes.fromhex(key_hex)
-        progress_bar.start(10)
-        Thread(target=perform_encryption, args=(file_path, key)).start()
+def encrypt_images():
+    file_paths = filedialog.askopenfilenames(filetypes=[('jpg file', '*.jpg')])
+    if file_paths:
+        batch_process(file_paths, "encrypt")
 
-def decrypt_image():
-    file_path = filedialog.askopenfilename(filetypes=[('enc file', '*.jpg.enc')])
-    if file_path:
-        key_hex = entry_key.get()
-        if len(key_hex) != 32:
-            messagebox.showerror("Error", "Key must be 32 hex characters long (16 bytes).")
-            return
-        key = bytes.fromhex(key_hex)
-        progress_bar.start(10)
-        Thread(target=perform_decryption, args=(file_path, key)).start()
+def decrypt_images():
+    file_paths = filedialog.askopenfilenames(filetypes=[('enc file', '*.jpg.enc')])
+    if file_paths:
+        batch_process(file_paths, "decrypt")
 
 root = Tk()
 root.geometry("400x300")
@@ -101,8 +103,8 @@ entry_key.place(x=20, y=50)
 Button(root, text="Generate Key", command=generate_key).place(x=20, y=80)
 Button(root, text="Load Key", command=load_key).place(x=150, y=80)
 
-Button(root, text="Encrypt Image", command=encrypt_image).place(x=20, y=120)
-Button(root, text="Decrypt Image", command=decrypt_image).place(x=150, y=120)
+Button(root, text="Encrypt Images", command=encrypt_images).place(x=20, y=120)
+Button(root, text="Decrypt Images", command=decrypt_images).place(x=150, y=120)
 
 progress_bar = ttk.Progressbar(root, orient=HORIZONTAL, length=200, mode='indeterminate')
 progress_bar.place(x=100, y=160)

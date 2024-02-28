@@ -14,7 +14,11 @@ def perform_encryption(file_path, key):
         cipher = AES.new(key, AES.MODE_CBC)
         iv = cipher.iv
         encrypted_image = cipher.encrypt(pad(original_image, AES.block_size))
-        encrypted_file_path = f"{file_path}.enc"
+        
+        # Modify file_path to include '_encrypted' before the extension
+        file_dir, file_name = os.path.split(file_path)
+        name, ext = os.path.splitext(file_name)
+        encrypted_file_path = os.path.join(file_dir, f"{name}_encrypted{ext}")
         
         with open(encrypted_file_path, 'wb') as ef:
             ef.write(iv + encrypted_image)

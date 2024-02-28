@@ -1,10 +1,18 @@
 from tkinter import *
-from tkinter import filedialog, messagebox
+from tkinter import filedialog, messagebox, ttk
 import os
 from Crypto.Cipher import AES
 from Crypto.Util.Padding import pad, unpad
 from Crypto.Random import get_random_bytes
 from threading import Thread
+
+def generate_key():
+    key = get_random_bytes(16)  # Generate a 16-byte key
+    key_file_path = filedialog.asksaveasfilename(defaultextension=".key", filetypes=[("Key files", "*.key")])
+    if key_file_path:
+        with open(key_file_path, 'wb') as key_file:
+            key_file.write(key)
+        messagebox.showinfo("Key Generated", f"Key saved successfully at: {key_file_path}")
 
 def perform_encryption(file_path, key):
     try:

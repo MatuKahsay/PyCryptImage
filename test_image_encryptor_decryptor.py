@@ -7,8 +7,10 @@ from unittest.mock import patch
 import tempfile
 import os
 
+
 # Import functions and classes from the main file
-from main import *
+from image_encrypt import *
+
 
 class TestImageEncryptorDecryptor(unittest.TestCase):
     def setUp(self):

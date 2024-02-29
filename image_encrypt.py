@@ -1,7 +1,8 @@
 from tkinter import *
 from tkinter import filedialog, messagebox, ttk
 import os
-from Crypto.Cipher import AES
+from Crypto.Cipher import AES, PKCS1_OAEP, Blowfish
+from Crypto.PublicKey import RSA
 from Crypto.Util.Padding import pad, unpad
 from Crypto.Random import get_random_bytes
 from threading import Thread
@@ -44,7 +45,7 @@ def load_key():
         entry_key.insert(0, key.hex())  # Display key as hex string in entry widget
         messagebox.showinfo("Key Loaded", "Encryption key loaded successfully.")
 
-def batch_process(files, operation):
+def batch_process(files, operation, algorithm, mode, padding):
     key_hex = entry_key.get()
     if len(key_hex) != 32:  # 16 bytes == 32 hex characters
         messagebox.showerror("Error", "Key must be 32 hex characters long (16 bytes).")
@@ -54,17 +55,25 @@ def batch_process(files, operation):
 
     for file_path in files:
         if operation == "encrypt":
-            Thread(target=perform_encryption, args=(file_path, key)).start()
+            Thread(target=perform_encryption, args=(file_path, key, algorithm, mode, padding)).start()
         elif operation == "decrypt":
-            Thread(target=perform_decryption, args=(file_path, key)).start()
+            Thread(target=perform_decryption, args=(file_path, key, algorithm, mode, padding)).start()
 
-def perform_encryption(file_path, key):
+def perform_encryption(file_path, key, algorithm, mode, padding):
     try:
         with open(file_path, 'rb') as f:
             original_image = f.read()
         
-        cipher = AES.new(key, AES.MODE_CBC)
-        iv = cipher.iv
+        if algorithm == "AES":
+            cipher = AES.new(key, mode)
+        elif algorithm == "RSA":
+            recipient_key = RSA.import_key(key)
+            cipher = PKCS1_OAEP.new(recipient_key)
+        elif algorithm == "Blowfish":
+            cipher = Blowfish.new(key, mode)
+        else:
+            raise ValueError("Invalid algorithm specified.")
+        
         encrypted_image = cipher.encrypt(pad(original_image, AES.block_size))
         
         file_dir, file_name = os.path.split(file_path)
@@ -72,7 +81,7 @@ def perform_encryption(file_path, key):
         encrypted_file_path = os.path.join(file_dir, f"{name}_encrypted{ext}")
         
         with open(encrypted_file_path, 'wb') as ef:
-            ef.write(iv + encrypted_image)
+            ef.write(encrypted_image)
         
         messagebox.showinfo("Success", f"Image encrypted successfully.\nSaved as: {encrypted_file_path}")
     except Exception as e:
@@ -80,13 +89,21 @@ def perform_encryption(file_path, key):
     finally:
         progress_bar.stop()
 
-def perform_decryption(file_path, key):
+def perform_decryption(file_path, key, algorithm, mode, padding):
     try:
         with open(file_path, 'rb') as ef:
-            iv = ef.read(16)
             encrypted_image = ef.read()
         
-        cipher = AES.new(key, AES.MODE_CBC, iv=iv)
+        if algorithm == "AES":
+            cipher = AES.new(key, mode)
+        elif algorithm == "RSA":
+            recipient_key = RSA.import_key(key)
+            cipher = PKCS1_OAEP.new(recipient_key)
+        elif algorithm == "Blowfish":
+            cipher = Blowfish.new(key, mode)
+        else:
+            raise ValueError("Invalid algorithm specified.")
+        
         decrypted_image = unpad(cipher.decrypt(encrypted_image), AES.block_size)
         
         file_dir, file_name = os.path.split(file_path)
@@ -106,29 +123,50 @@ def perform_decryption(file_path, key):
 def encrypt_images():
     file_paths = filedialog.askopenfilenames(filetypes=[('jpg file', '*.jpg')])
     if file_paths:
-        batch_process(file_paths, "encrypt")
+        batch_process(file_paths, "encrypt", algorithm_var.get(), mode_var.get(), padding_var.get())
 
 def decrypt_images():
     file_paths = filedialog.askopenfilenames(filetypes=[('enc file', '*.jpg.enc')])
     if file_paths:
-        batch_process(file_paths, "decrypt")
+        batch_process(file_paths, "decrypt", algorithm_var.get(), mode_var.get(), padding_var.get())
 
 root = Tk()
-root.geometry("400x300")
+root.geometry("400x400")
 root.title("Image Encryptor/Decryptor")
 
-Label(root, text="Key (32 hex characters):").place(x=20, y=20)
+Label(root, text="Key (32 hex characters):").grid(row=0, column=0, padx=10, pady=10)
 entry_key = Entry(root, width=48)
-entry_key.place(x=20, y=50)
+entry_key.grid(row=0, column=1, padx=10, pady=10)
 
-Button(root, text="Generate Key", command=generate_key).place(x=20, y=80)
-Button(root, text="Load Key", command=load_key).place(x=150, y=80)
+Button(root, text="Generate Key", command=generate_key).grid(row=1, column=0, padx=10, pady=10)
+Button(root, text="Load Key", command=load_key).grid(row=1, column=1, padx=10, pady=10)
 
-Button(root, text="Encrypt Images (Ctrl+E)", command=encrypt_images).place(x=20, y=120)
-Button(root, text="Decrypt Images (Ctrl+D)", command=decrypt_images).place(x=150, y=120)
+Button(root, text="Encrypt Images (Ctrl+E)", command=encrypt_images).grid(row=2, column=0, padx=10, pady=10)
+Button(root, text="Decrypt Images (Ctrl+D)", command=decrypt_images).grid(row=2, column=1, padx=10, pady=10)
 
 progress_bar = ttk.Progressbar(root, orient=HORIZONTAL, length=200, mode='indeterminate')
-progress_bar.place(x=100, y=160)
+progress_bar.grid(row=3, column=0, columnspan=2, padx=10, pady=10)
+
+algorithm_var = StringVar()
+algorithm_var.set("AES")
+algorithm_label = Label(root, text="Encryption Algorithm:")
+algorithm_label.grid(row=4, column=0, padx=10, pady=5, sticky="e")
+algorithm_option = OptionMenu(root, algorithm_var, "AES", "RSA", "Blowfish")
+algorithm_option.grid(row=4, column=1, padx=10, pady=5, sticky="w")
+
+mode_var = StringVar()
+mode_var.set("CBC")
+mode_label = Label(root, text="Encryption Mode:")
+mode_label.grid(row=5, column=0, padx=10, pady=5, sticky="e")
+mode_option = OptionMenu(root, mode_var, "CBC", "ECB")
+mode_option.grid(row=5, column=1, padx=10, pady=5, sticky="w")
+
+padding_var = StringVar()
+padding_var.set("pkcs7")
+padding_label = Label(root, text="Padding Scheme:")
+padding_label.grid(row=6, column=0, padx=10, pady=5, sticky="e")
+padding_option = OptionMenu(root, padding_var, "pkcs7", "no padding")
+padding_option.grid(row=6, column=1, padx=10, pady=5, sticky="w")
 
 # Tooltip for Generate Key button
 ToolTip(Button(root, text="Generate Key", command=generate_key), "Generate a random encryption key.")
